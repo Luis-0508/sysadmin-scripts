@@ -1,3 +1,4 @@
+:: fully clears your teams cache to remove lag and crashes (since microsoft doesn't give you an option)
 @RD /S /Q "%LocalAppData%\Packages\MSTeams_8wekyb3d8bbwe"
 @RD /S /Q "%LocalAppData%\Packages\Microsoft.AAD.BrokerPlugin_cw5n1h2txyewy"
 @RD /S /Q "%LocalAppData%\Microsoft\OneAuth"
