@@ -1,4 +1,8 @@
-:: fully clears your teams cache to remove lag and crashes (since microsoft doesn't give you an option)
+:: =============================================
+:: Full Microsoft Teams Cache Clear
+:: =============================================
+:: This script completely clears all Microsoft Teams cache and login data to fix lag,
+:: crashes, and stubborn issues that Microsoft does not provide an option for.
 @RD /S /Q "%LocalAppData%\Packages\MSTeams_8wekyb3d8bbwe"
 @RD /S /Q "%LocalAppData%\Packages\Microsoft.AAD.BrokerPlugin_cw5n1h2txyewy"
 @RD /S /Q "%LocalAppData%\Microsoft\OneAuth"
