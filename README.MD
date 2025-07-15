@@ -38,6 +38,9 @@ These scripts are designed to save time and reduce troubleshooting effort for **
 - [`onedrive/disable-onedrive.cmd`](onedrive/disable-onedrive.cmd)  
   🚫 Uninstalls OneDrive, removes leftover files and disables the sync client via registry settings.
 
+- [`windows/remove-bloatware.cmd`](windows/remove-bloatware.cmd)  
+  🧽 Removes pre-installed bloatware apps (e.g. Xbox, Candy Crush, Paint 3D) and blocks their future installation using PowerShell.
+
 ---
 
 ### 🧑‍💼 Active Directory
@@ -52,14 +55,13 @@ These scripts are designed to save time and reduce troubleshooting effort for **
 
 ## 📌 Planned / To-Do
 
-- [ ] Office license cleanup
-- [ ] Reset network stack (DNS/Winsock/IP)
-- [ ] Fix printer spooler issues
-- [ ] Remove Windows bloatware (e.g. Xbox, Candy Crush)
-- [ ] Systeminfo export and log collection
-- [ ] Startup entry report
-- [ ] Enable dark mode via registry
-- [ ] Reset Outlook profile
+- [ ] Office license cleanup  
+- [ ] Reset network stack (DNS/Winsock/IP)  
+- [ ] Fix printer spooler issues  
+- [ ] Systeminfo export and log collection  
+- [ ] Startup entry report  
+- [ ] Enable dark mode via registry  
+- [ ] Reset Outlook profile  
 
 ---
 
