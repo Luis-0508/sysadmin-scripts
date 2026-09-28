@@ -1,0 +1,55 @@
+name: Windows script safety checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Run static safety tests
+        run: python -m unittest discover -s tests -v
+      - name: Parse PowerShell helpers
+        shell: powershell
+        run: |
+          $hasErrors = $false
+          Get-ChildItem -Path scripts -Filter *.ps1 -Recurse | ForEach-Object {
+            $tokens = $null
+            $parseErrors = $null
+            $null = [System.Management.Automation.Language.Parser]::ParseFile(
+              $_.FullName, [ref]$tokens, [ref]$parseErrors
+            )
+            foreach ($parseError in $parseErrors) {
+              Write-Host "FAILED: $($_.Name): $($parseError.Message)"
+              $hasErrors = $true
+            }
+          }
+          if ($hasErrors) { exit 1 }
+      - name: Smoke-test non-mutating previews
+        shell: powershell
+        run: |
+          $scripts = @(
+            'active-directory\launch-ad-console-as-user.cmd',
+            'adobe-acrobat\disable-javascript.cmd',
+            'ms-teams\clear-teams-login.cmd',
+            'ms-teams\full-clear-teams-cache.cmd',
+            'onedrive\disable-onedrive.cmd',
+            'outlook\fix-outlook-crashes-june-2025-update.cmd',
+            'outlook\hide-new-outlook-button.cmd',
+            'windows\remove-bloatware.cmd'
+          )
+          foreach ($script in $scripts) {
+            Write-Host "PREVIEW: $script"
+            & cmd.exe /d /c $script /preview
+            if ($LASTEXITCODE -ne 0) { throw "Preview failed for $script (exit $LASTEXITCODE)" }
+          }

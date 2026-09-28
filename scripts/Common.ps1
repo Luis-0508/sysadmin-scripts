@@ -28,7 +28,7 @@ function Assert-SafeDeleteTarget {
         [Parameter(Mandatory)][string]$Path,
         [Parameter(Mandatory)][string]$Root
     )
-    $fullRoot = [IO.Path]::GetFullPath($Root).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+    $fullRoot = [IO.Path]::GetFullPath($Root).TrimEnd([char[]]@('\', '/')) + [IO.Path]::DirectorySeparatorChar
     $fullPath = [IO.Path]::GetFullPath($Path)
     if (-not $fullPath.StartsWith($fullRoot, [StringComparison]::OrdinalIgnoreCase)) {
         throw "Refusing to remove a path outside its expected profile root: $fullPath"
@@ -38,7 +38,7 @@ function Assert-SafeDeleteTarget {
     if ($parts.Count -lt 2) {
         throw "Refusing to remove a profile root or direct child: $fullPath"
     }
-    $current = $fullRoot.TrimEnd('\', '/')
+    $current = $fullRoot.TrimEnd([char[]]@('\', '/'))
     foreach ($part in $parts) {
         if (-not $part) { continue }
         $current = Join-Path $current $part
