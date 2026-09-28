@@ -65,4 +65,8 @@ GitHub Actions parses every PowerShell helper, runs static safety tests and smok
 
 ## License
 
-[MIT](LICENSE).
+This project's original code and documentation are licensed under the [MIT License](LICENSE) (SPDX identifier: `MIT`). You may use, modify and redistribute them, including for commercial helpdesk work. If you distribute copies or substantial portions, keep the copyright notice and the MIT license text. You do not have to publish your own changes or license unrelated code under MIT.
+
+The MIT license includes an "as is" warranty disclaimer and a limitation-of-liability clause, subject to applicable law. Neither the license nor a green CI run guarantees that an administrative script is safe for a particular machine. Review targets, verify backups and follow the [Windows VM test plan](docs/TESTING.md) before applying potentially destructive changes.
+
+Microsoft, Adobe and other named third-party products remain subject to their own terms. The MIT license in this repository does not grant rights to third-party software or materials that are not part of this project; preserve any third-party notices if such material is added later.
