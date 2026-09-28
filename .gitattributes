@@ -1,0 +1,6 @@
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.py text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.MD text eol=lf

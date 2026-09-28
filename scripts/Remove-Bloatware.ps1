@@ -2,7 +2,7 @@ param([switch]$Apply)
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'Common.ps1')
 
-# Intentionally exact package names: no wildcards, no -AllUsers and no blanket Store policy.
+# Intentionally exact package names: no wildcards, no all-user removal, and no Store policy.
 $packageNames = @(
     'Microsoft.3DBuilder',
     'Microsoft.ZuneMusic',
