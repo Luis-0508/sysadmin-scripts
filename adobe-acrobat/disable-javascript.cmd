@@ -1,11 +1,26 @@
-:: =============================================
-:: Disable JavaScript in Adobe Acrobat Reader DC
-:: =============================================
-:: This script fully disables JavaScript and trusted folders in Adobe Acrobat Reader DC
-:: by setting the appropriate registry keys for FeatureLockDown policies.
-:: Requires administrative privileges.
-::
-:: Usage: Run as administrator
-::
-reg add "HKLM\SOFTWARE\WOW6432Node\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown" /v "bDisableJavaScript" /t REG_DWORD /d "0x00000001" /f
-reg add "HKLM\SOFTWARE\WOW6432Node\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown" /v "bDisableTrustedFolders" /t REG_DWORD /d "0x00000001" /f
+@echo off
+setlocal
+if not "%~2"=="" goto usage
+set "apply="
+if "%~1"=="" goto run
+if /i "%~1"=="/preview" goto run
+if /i "%~1"=="/apply" (
+    set "apply=-Apply"
+    goto run
+)
+if /i "%~1"=="/help" goto help
+goto usage
+:run
+set "ps=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
+if exist "%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe" set "ps=%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe"
+"%ps%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\scripts\Set-AcrobatJavaScriptPolicy.ps1" %apply%
+exit /b %errorlevel%
+:help
+echo Disable Acrobat/Reader JavaScript and trusted folders for detected DC installations.
+echo Usage: %~nx0 [/preview ^| /apply ^| /help]
+echo Default: preview only; /apply may require interactive confirmation.
+exit /b 0
+:usage
+echo ERROR: Invalid arguments.
+echo Usage: %~nx0 [/preview ^| /apply ^| /help]
+exit /b 2

@@ -1,32 +1,26 @@
-:: =============================================
-:: Disable and Remove OneDrive from Windows
-:: =============================================
-:: This script uninstalls OneDrive, deletes leftover files and folders,
-:: and disables it via registry so it no longer appears or auto-starts.
-::
-:: Requires: Run as Administrator
-::
 @echo off
-
-:: Kill running OneDrive process
-taskkill /f /im OneDrive.exe >nul 2>&1
-
-:: Uninstall OneDrive (handles both 32-bit and 64-bit)
-IF EXIST "%SystemRoot%\SysWOW64\OneDriveSetup.exe" (
-    "%SystemRoot%\SysWOW64\OneDriveSetup.exe" /uninstall
-) ELSE (
-    "%SystemRoot%\System32\OneDriveSetup.exe" /uninstall
+setlocal
+if not "%~2"=="" goto usage
+set "apply="
+if "%~1"=="" goto run
+if /i "%~1"=="/preview" goto run
+if /i "%~1"=="/apply" (
+    set "apply=-Apply"
+    goto run
 )
-
-:: Delete leftover OneDrive folders
-@RD /S /Q "%UserProfile%\OneDrive"
-@RD /S /Q "%LocalAppData%\Microsoft\OneDrive"
-@RD /S /Q "%ProgramData%\Microsoft OneDrive"
-@RD /S /Q "C:\OneDriveTemp"
-
-:: Disable OneDrive sync via registry
-reg add "HKLM\Software\Policies\Microsoft\Windows\OneDrive" /v "DisableFileSync" /t REG_DWORD /d 1 /f
-
-:: Hide OneDrive from File Explorer navigation pane
-reg add "HKCR\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}" /v "System.IsPinnedToNameSpaceTree" /t REG_DWORD /d 0 /f
-reg add "HKCR\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}" /v "System.IsPinnedToNameSpaceTree" /t REG_DWORD /d 0 /f
+if /i "%~1"=="/help" goto help
+goto usage
+:run
+set "ps=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
+if exist "%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe" set "ps=%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe"
+"%ps%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\scripts\Disable-OneDrive.ps1" %apply%
+exit /b %errorlevel%
+:help
+echo Apply the OneDrive sync policy and run its uninstaller without deleting any user files.
+echo Usage: %~nx0 [/preview ^| /apply ^| /help]
+echo Default: preview only; /apply may require interactive confirmation.
+exit /b 0
+:usage
+echo ERROR: Invalid arguments.
+echo Usage: %~nx0 [/preview ^| /apply ^| /help]
+exit /b 2
