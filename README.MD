@@ -1,70 +1,68 @@
-# 🛠️ Sysadmin Scripts
+# Sysadmin Scripts
 
-A collection of Windows **batch scripts** for system administrators to quickly **fix**, **clean**, and **configure** common issues in Microsoft Office, Teams, Adobe Acrobat, and Windows itself.
+A small collection of **Windows** support scripts for Active Directory, Acrobat/Reader, Microsoft Teams, OneDrive, classic Outlook and optional Windows apps. All eight CMD entry points default to **preview only**. No script downloads or executes remote code.
 
-These scripts are designed to save time and reduce troubleshooting effort for **IT professionals**, **Helpdesk technicians**, and **power users**.
+> **Read this before using the scripts on a user's PC.** `/apply` changes the current machine or account, sometimes irreversibly. Test in an isolated VM, review the proposed targets, keep backups and verify the affected account. The repository is MIT-licensed and provided without warranty.
 
----
+## Quick start
 
-## 📄 Script Overview
+Open a terminal in the repository and run a script without arguments, or explicitly pass `/preview`:
 
-### 📂 Adobe Acrobat
-- [`adobe-acrobat/disable-javascript.cmd`](adobe-acrobat/disable-javascript.cmd)  
-  🔒 Disables JavaScript and trusted folders in Adobe Acrobat Reader DC for enhanced security using registry keys.
+```cmd
+ms-teams\full-clear-teams-cache.cmd /preview
+```
 
----
+Review its output. To carry out the operation, use `/apply`:
 
-### 💬 Microsoft Teams
-- [`ms-teams/clear-teams-login.cmd`](ms-teams/clear-teams-login.cmd)  
-  🧹 Clears cached login folders for Microsoft Teams to ensure credentials must be re-entered.
+```cmd
+ms-teams\full-clear-teams-cache.cmd /apply
+```
 
-- [`ms-teams/full-clear-teams-cache.cmd`](ms-teams/full-clear-teams-cache.cmd)  
-  🧼 Completely removes all Teams cache and login data to fix lag, crashes, or syncing issues.
+Destructive or machine-wide helpers also require a typed confirmation. `/help` prints usage. A successful preview does **not** establish that applying the change will succeed. Scripts return exit code `0` for success or a safe skip, `1` for an operational failure and `2` for invalid usage or a cancelled operation.
 
----
+**Account context matters:** Run Teams, Outlook and per-user Appx tasks as the **affected user**. Starting them through an alternate administrator account changes the administrator's own profile/HKCU instead. Use an elevated terminal for machine-wide Adobe/OneDrive policy changes and Appx deprovisioning, preferably by elevating the intended account rather than switching accounts.
 
-### 📧 Outlook
-- [`outlook/fix-outlook-crashes-june-2025-update.cmd`](outlook/fix-outlook-crashes-june-2025-update.cmd)  
-  🛠️ Fixes crashes caused by the June 2025 Outlook Classic update by creating the missing `FORMS2` folder in `%APPDATA%`.  
-  🔗 [Microsoft Support Article](https://support.microsoft.com/en-us/office/classic-outlook-crashes-opening-or-starting-a-new-email-1b413573-7dfc-4147-9c53-c2f1183b89b8)
+The PowerShell helpers use Windows PowerShell 5.1 and the built-in Windows utilities. CMD launchers set the execution policy only for their own PowerShell process; organization-enforced policies still apply. Inspect the local, trusted scripts before execution.
 
-- [`outlook/hide-new-outlook-button.cmd`](outlook/hide-new-outlook-button.cmd)  
-  🙈 Hides the "Try the New Outlook" toggle in Outlook 2016/2019/365 using registry configuration.  
-  🔗 [Microsoft Learn: Control Install](https://learn.microsoft.com/de-de/microsoft-365-apps/outlook/get-started/control-install)
+## Scripts
 
----
+| Entry point | Preview / apply behavior | Scope and recovery |
+| --- | --- | --- |
+| [Launch AD console](active-directory/launch-ad-console-as-user.cmd) | `/apply` securely prompts for a domain, account and password, then starts `dsa.msc` with alternate credentials. | Requires RSAT Active Directory tools and a simple DNS/NetBIOS domain and sAMAccountName. No password is stored. Closing the console undoes the action. |
+| [Disable Adobe JavaScript](adobe-acrobat/disable-javascript.cmd) | Detects supported Reader/Acrobat DC installations before setting `bDisableJavaScript=1` and `bDisableTrustedFolders=1`. | Machine-wide Adobe policy. Existing target keys are exported to a timestamped REG backup in `%TEMP%` before modification. Review managed policies before restoring a backup. |
+| [Reset Teams login cache](ms-teams/clear-teams-login.cmd) | Only clears the **new Teams-specific cache** after Teams is closed and you type `RESET`. | Does **not** delete OneAuth, TokenBroker, IdentityCache or AAD BrokerPlugin. It cannot guarantee sign-out with Windows SSO; use Teams' own Sign out if account separation is required. |
+| [Reset full Teams caches](ms-teams/full-clear-teams-cache.cmd) | Clears new Teams' cache and known classic Teams cache subfolders after confirmation. | Preserves shared M365 identity stores and classic diagnostic logs outside the listed caches. Some personalization may be lost; restart Teams. |
+| [Disable/remove OneDrive](onedrive/disable-onedrive.cmd) | After confirmation, sets the documented `DisableFileSyncNGSC=1` machine policy and invokes an available OneDrive uninstaller. | **Never deletes `%UserProfile%\OneDrive` or its contents.** Verify sync and backup status manually before applying. An existing policy key is exported to `%TEMP%`. Reverting requires changing the policy, and reinstalling OneDrive if removed. |
+| [Classic Outlook FORMS2 workaround](outlook/fix-outlook-crashes-june-2025-update.cmd) | Only creates the quoted `%LOCALAPPDATA%\Microsoft\FORMS2` folder when missing and Outlook is closed. | For the specific June 2025 classic Outlook forms-library crash. Microsoft has fixed the issue in subsequent builds: update Office first. |
+| [Hide New Outlook toggle](outlook/hide-new-outlook-button.cmd) | `/apply` sets the current user's `HideNewOutlookToggle=1`; `/restore` removes the local value after confirmation. | Only affects the classic Outlook toggle, not installation of the new app. Do not override organization-managed settings. |
+| [Remove selected Appx apps](windows/remove-bloatware.cmd) | Shows **exact package names** first; `/apply` requires admin rights and typed `REMOVE`. | Only removes matching installed apps from the current user and deprovisions matching packages for future accounts. Does not affect every existing user and does **not** permanently block Store/Windows reinstallation. |
 
-### ☁️ Windows / OneDrive
-- [`onedrive/disable-onedrive.cmd`](onedrive/disable-onedrive.cmd)  
-  🚫 Uninstalls OneDrive, removes leftover files and disables the sync client via registry settings.
+### Microsoft Teams troubleshooting
 
-- [`windows/remove-bloatware.cmd`](windows/remove-bloatware.cmd)  
-  🧽 Removes pre-installed bloatware apps (e.g. Xbox, Candy Crush, Paint 3D) and blocks their future installation using PowerShell.
+Microsoft does **not** recommend cache deletion as a general fix for missing chats, channels or notifications: it can remove diagnostics that support needs. Use the cache scripts only for a targeted local-client problem after checking network, service and account status. Official procedure: [Clear the Teams client cache](https://learn.microsoft.com/en-us/troubleshoot/microsoftteams/teams-administration/clear-teams-cache).
 
----
+### OneDrive and managed devices
 
-### 🧑‍💼 Active Directory
-- [`active-directory/launch-ad-console-as-user.cmd`](active-directory/launch-ad-console-as-user.cmd)  
-  🔐 Prompts for domain credentials and launches the Active Directory Users and Computers console (`dsa.msc`) as another user without switching sessions.
+`DisableFileSyncNGSC` is the Windows policy that prevents OneDrive sync; it affects the machine and may be re-applied or controlled by Group Policy/MDM. See [Microsoft's OneDrive policy guidance](https://support.microsoft.com/en-us/onedrive/onedrive-won-t-start). Do not use the uninstaller until you have independently checked the user's sync queue and backups. The script cannot prove that cloud files are fully synchronized.
 
----
+### Adobe scope
 
-> ⚠️ **Note:** Most scripts require **administrator privileges**. Always review scripts before running in production environments. Use at your own risk.
+The script supports detected DC registry footprints for Reader/Acrobat and their 32-/64-bit policy paths. If installation detection fails, it makes no changes. Confirm your Adobe package's registry layout and deploy managed policy through GPO/MDM where appropriate. The keys disable JavaScript and trusted folders; they do not promise to disable every other trust mechanism. See [Adobe's enterprise registry guidance](https://helpx.adobe.com/business/enterprise/deploy-apps-updates/deploy-packages/acrobat-64-bit-for-enterprises.html).
 
----
+### Outlook scope
 
-## 📌 Planned / To-Do
+Microsoft documents the `FORMS2` workaround for a **fixed** June 2025 crash. Check [the known-issue article](https://support.microsoft.com/en-us/support/known-issues/classic-outlook-crashes-opening-or-starting-a-new-email) and installed build before applying it. The [New Outlook toggle setting](https://learn.microsoft.com/en-us/microsoft-365-apps/outlook/get-started/control-install) does not remove the new Outlook application.
 
-- [ ] Office license cleanup  
-- [ ] Reset network stack (DNS/Winsock/IP)  
-- [ ] Fix printer spooler issues  
-- [ ] Systeminfo export and log collection  
-- [ ] Startup entry report  
-- [ ] Enable dark mode via registry  
-- [ ] Reset Outlook profile  
+## Validation
 
----
+GitHub Actions parses every PowerShell helper, runs static safety tests and smoke-tests every CMD launcher in `/preview` mode on Windows. The workflow intentionally never calls `/apply` or `/restore`. Follow [the VM test plan](docs/TESTING.md) for manual changes that cannot safely be exercised in CI.
 
-## 📜 License
+## Planned additions
 
-This project is licensed under the [MIT License](LICENSE).
+- Non-destructive Office licensing diagnostics and report export
+- Network, print spooler and system information collection (preview-first)
+- A targeted Outlook profile diagnostic, without deleting a user's profile
+
+## License
+
+[MIT](LICENSE).

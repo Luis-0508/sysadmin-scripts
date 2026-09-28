@@ -1,35 +1,26 @@
-:: =============================================
-:: Remove & Block Default Windows Bloatware
-:: =============================================
-:: This script removes common pre-installed apps from Windows
-:: and blocks them from being reinstalled automatically via the Store.
-::
-:: Requires: Run as administrator
-::
 @echo off
-title Windows Bloatware Removal Script
-setlocal EnableDelayedExpansion
-
-:: Check for admin rights
-openfiles >nul 2>&1
-if %errorlevel% NEQ 0 (
-    echo This script must be run as administrator.
-    pause
-    exit /b
+setlocal
+if not "%~2"=="" goto usage
+set "apply="
+if "%~1"=="" goto run
+if /i "%~1"=="/preview" goto run
+if /i "%~1"=="/apply" (
+    set "apply=-Apply"
+    goto run
 )
-
-echo Removing removable apps...
-set apps=3DBuilder ZuneMusic ZuneVideo BingWeather WindowsMaps SolitaireCollection CandyCrush Xbox GetHelp FeedbackHub Paint3D MixedReality
-
-for %%A in (%apps%) do (
-    echo Trying to remove: %%A
-    powershell -Command "Get-AppxPackage *%%A* | Remove-AppxPackage -ErrorAction SilentlyContinue"
-)
-
-echo.
-echo Blocking future installations...
-powershell -Command "Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -match '3DBuilder|ZuneMusic|ZuneVideo|BingWeather|WindowsMaps|SolitaireCollection|CandyCrush|Xbox|GetHelp|FeedbackHub|Paint3D|MixedReality' } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue"
-
-echo.
-echo Bloatware removal and blocking complete.
-pause
+if /i "%~1"=="/help" goto help
+goto usage
+:run
+set "ps=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
+if exist "%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe" set "ps=%SystemRoot%\Sysnative\WindowsPowerShell\v1.0\powershell.exe"
+"%ps%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\scripts\Remove-Bloatware.ps1" %apply%
+exit /b %errorlevel%
+:help
+echo Preview and optionally remove an exact allowlist of Windows Appx packages.
+echo Usage: %~nx0 [/preview ^| /apply ^| /help]
+echo Default: preview only; /apply may require interactive confirmation.
+exit /b 0
+:usage
+echo ERROR: Invalid arguments.
+echo Usage: %~nx0 [/preview ^| /apply ^| /help]
+exit /b 2
